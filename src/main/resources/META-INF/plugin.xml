@@ -13,17 +13,29 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+    Plugin for Android Studio to add localized launcher icons<br>
   ]]></description>
-
+    <!--    <actions>-->
+    <!--        <action id="LocalizedLauncherIconAction"-->
+    <!--                class="com.localizedLauncherIcon.LocalizedLauncherIconAction"-->
+    <!--                text="Add Localized Launcher Icon"-->
+    <!--                icon="icons/pluginIcon.svg"-->
+    <!--                description="Adds localized launcher icons for different countries">-->
+    <!--            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewXml" />-->
+    <!--        </action>-->
+    <!--    </actions>-->
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
-    <depends>com.intellij.modules.platform</depends>
-
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <depends>com.intellij.java</depends>    <!-- Plugin compatibility for intellij & android studio -->
     <extensions defaultExtensionNs="com.intellij">
 
     </extensions>
+    <actions>
+        <action id="com.localizedLauncherIcon.LocalizedLauncherIconAction"
+                class="com.localizedLauncherIcon.LocalizedLauncherIconAction"
+                icon="icons/pluginIcon.svg"
+                text="Add Localized Launcher Icon">
+            <add-to-group group-id="NewGroup" anchor="first"/>
+        </action>
+    </actions>
 </idea-plugin>

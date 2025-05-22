@@ -1,1 +1,1 @@
-rootProject.name = "LauncherLocalizedIcon"
+rootProject.name = "LocalizedLauncherIcon"
