@@ -95,7 +95,7 @@ class LLIADialogWrapper(private val action: AnActionEvent) : DialogWrapper(actio
     }
 
     override fun doOKAction() {
-        if(fgIcon.isNotEmpty() || bgIcon.isNotEmpty()) {
+        if(fgIcon.isNotEmpty() && bgIcon.isNotEmpty()) {
             LauncherGenerator.generateLauncherIcons(
                 projectBasePath = selectedFolder?.path ?: "",
                 localeCode = getLocaleCode(),
