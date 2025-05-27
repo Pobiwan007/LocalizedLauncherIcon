@@ -1,3 +1,6 @@
+## 🖼️ Demo
+
+![Demo of plugin usage](docs/demo.gif)
 # Localized Launcher Icon Plugin
 
 An Android Studio plugin that simplifies the creation of localized launcher icons (`ic_launcher`, `ic_launcher_round`, `ic_launcher_foreground`, `ic_launcher_background`) with support for multiple screen densities and locale-specific folders.
@@ -13,20 +16,32 @@ An Android Studio plugin that simplifies the creation of localized launcher icon
     - Locale code input (e.g., `ru`, `en-rUS`)
     - Foreground and background image pickers with preview
 
+## 🛠️ Installation
+
+### 📦 From JetBrains Marketplace *(Recommended)*
+
+> Coming soon...
+
+### 🧾 From `.jar` File (Manual Installation)
+
+1. Open **Android Studio** (or IntelliJ IDEA)
+2. Go to **Settings / Preferences > Plugins**
+3. Click the ⚙️ **gear icon**, then select **"Install Plugin from Disk..."**
+4. Choose the `.jar` file you built or downloaded
+5. Restart the IDE when prompted
+
+
 ## 🧪 How to Use
 
-1. **Install the plugin** from `.jar` file or fork repository and run plugin in IntelliJ IDEA.
-2. **If** you forked repository don\`t forget to update Android Studio local path in `build.gradle.kts`.
-3. **Right-click on the `res` folder** → `New` → `Localized Launcher Icon`.
-4. **Fill out the dialog form**:
+1. **If** you forked repository don\`t forget to update Android Studio local path in `build.gradle.kts`.
+2. **Right-click on the `res` folder** → `New` → `Localized Launcher Icon`.
+3. **Fill out the dialog form**:
     - Icon name (`ic_launcher`)
     - Locale code (`en`, `ru-rKZ`)
     - Select foreground and background images
-5. **Click OK** — all icons will be generated automatically.
+4. **Click OK** — all icons will be generated automatically.
 
 
 P.S. don`t forget refresh all files from your disk to update project files in Android Studio
-## 🖼️ Demo
 
-![Demo of plugin usage](docs/demo.gif)
 
