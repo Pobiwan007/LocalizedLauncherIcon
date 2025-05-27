@@ -12,9 +12,13 @@
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <description><![CDATA[
-    Plugin for Android Studio to add localized launcher icons<br>
-  ]]></description>
+    <description>
+        Android Studio plugin for generating locale-specific launcher icons.
+        Supports all screen densities and creates the full launcher icon set:
+        ic_launcher, ic_launcher_round, ic_launcher_foreground, ic_launcher_background,
+        including adaptive icon XMLs for anydpi-v26.
+        Features a UI for selecting foreground/background images and setting icon and locale names.
+    </description>
     <!--    <actions>-->
     <!--        <action id="LocalizedLauncherIconAction"-->
     <!--                class="com.localizedLauncherIcon.LocalizedLauncherIconAction"-->
@@ -27,9 +31,9 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.java</depends>    <!-- Plugin compatibility for intellij & android studio -->
-    <extensions defaultExtensionNs="com.intellij">
+    <extensions defaultExtensionNs="com.intellij"/>
+    <version>1.0.0</version>
 
-    </extensions>
     <actions>
         <action id="com.localizedLauncherIcon.LocalizedLauncherIconAction"
                 class="com.localizedLauncherIcon.LocalizedLauncherIconAction"
