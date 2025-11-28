@@ -6,6 +6,7 @@ import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.localizedLauncherIcon.validator.iconTextValidator
@@ -14,23 +15,28 @@ import java.awt.Dimension
 import java.awt.Image
 import javax.swing.*
 
-class LLIADialogWrapper(private val action: AnActionEvent) : DialogWrapper(action.project) {
+class LLIADialogWrapper(action: AnActionEvent) : DialogWrapper(action.project) {
     private lateinit var fgIcon: String
     private lateinit var bgIcon: String
     private lateinit var iconNameTextField: Cell<JBTextField>
     private lateinit var localeCodeTextField: Cell<JBTextField>
+    private lateinit var localizedNameTextField: Cell<JBTextField>
+    private lateinit var localizedNameRow: Row
 
     private val fgIconLabel = JLabel("No foreground icon selected")
     private val bgIconLabel = JLabel("No background icon selected")
+    private lateinit var addLocalizedNamesCheckBox: Cell<JBCheckBox>
 
     init {
         title = "Create Localized Launcher Icon"
         super.init()
     }
+
     private val selectedFolder = PlatformDataKeys.VIRTUAL_FILE.getData(action.dataContext)
 
     fun getIconName(): String = iconNameTextField.component.text
     fun getLocaleCode(): String = localeCodeTextField.component.text
+    fun getLocalizedName(): String = localizedNameTextField.component.text
 
     override fun createCenterPanel(): JComponent {
         fgIconLabel.horizontalAlignment = SwingConstants.CENTER
@@ -38,7 +44,7 @@ class LLIADialogWrapper(private val action: AnActionEvent) : DialogWrapper(actio
 
         println("PathToSelectedFolder: ".plus(selectedFolder?.path))
         val panel = panel {
-            if (!selectedFolder?.name.equals("res")) row {  label ("Selected folder isn`t resource") }
+            if (!selectedFolder?.name.equals("res")) row { label("Selected folder isn`t resource") }
             row { label("Icon name") }
             row {
                 iconNameTextField = textField()
@@ -74,11 +80,27 @@ class LLIADialogWrapper(private val action: AnActionEvent) : DialogWrapper(actio
                     }
                 }
             }
+            row {
+                addLocalizedNamesCheckBox = checkBox("Also add localized appname")
+                    .applyToComponent {
+                        addActionListener {
+                            val visible = isSelected
+                            localizedNameRow.visible(visible)
+                        }
+                    }
+            }
+
+            // Hidden text field (display names for desktop)
+            localizedNameRow = row {
+                label("AppName value")
+                localizedNameTextField = textField()
+            }
+            localizedNameRow.visible(false)
         }
         return panel
     }
 
-    private fun showSelectedImagePreview(jLabel: JLabel, path: String){
+    private fun showSelectedImagePreview(jLabel: JLabel, path: String) {
         jLabel.preferredSize = Dimension(48, 48)
         jLabel.icon = ImageIcon(ImageIcon(path).image.getScaledInstance(48, 48, Image.SCALE_SMOOTH))
         jLabel.text = ""
@@ -95,14 +117,18 @@ class LLIADialogWrapper(private val action: AnActionEvent) : DialogWrapper(actio
     }
 
     override fun doOKAction() {
-        if(fgIcon.isNotEmpty() && bgIcon.isNotEmpty()) {
+        if (fgIcon.isNotEmpty() && bgIcon.isNotEmpty()) {
+            val projectPath = selectedFolder?.path ?: ""
             LauncherGenerator.generateLauncherIcons(
-                projectBasePath = selectedFolder?.path ?: "",
+                projectBasePath = projectPath,
                 localeCode = getLocaleCode(),
                 iconName = getIconName(),
                 fgIconPath = fgIcon,
                 bgIconPath = bgIcon
             )
+            if (addLocalizedNamesCheckBox.component.isSelected) {
+                AppNameGenerator.generateLocalizedAppName(appName = getLocalizedName(), locales = getLocaleCode(), projectPath = projectPath)
+            }
             super.doOKAction()
         }
     }

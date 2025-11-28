@@ -12,10 +12,17 @@ val iconTextValidator:ValidationInfoBuilder.(JBTextField) -> ValidationInfo? = {
     }
 }
 val localeTextValidator: ValidationInfoBuilder.(JBTextField) -> ValidationInfo? = {
-    when{
-        it.text.isNullOrEmpty() -> ValidationInfo("Value cannot be empty")
-        !it.text.matches(Regex("^[a-z]{2}(-r[A-Z]{2})?$")) ->
-            ValidationInfo("Invalid locale format. Use format like 'ru' or 'ru-rKZ'")
+    val singleLocaleRegex = "^[a-z]{2}(-r[A-Z]{2})?$"
+    val listRegex = "^([a-z]{2}(-r[A-Z]{2})?)(\\s*,\\s*[a-z]{2}(-r[A-Z]{2})?)*$"
+
+    when {
+        it.text.isNullOrEmpty() ->
+            ValidationInfo("Value cannot be empty")
+
+        !it.text.matches(Regex(singleLocaleRegex)) &&
+                !it.text.matches(Regex(listRegex)) ->
+            ValidationInfo("Invalid locale format. Use 'ru', 'ru-rKZ' or comma-separated list like 'en,ru,uz-rUZ'")
+
         else -> null
     }
 }

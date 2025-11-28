@@ -24,6 +24,10 @@ object LauncherGenerator {
             "xxhdpi" to 3.0,
             "xxxhdpi" to 4.0
         )
+        val localeList = localeCode
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
 
         val fgImage = ImageIO.read(File(fgIconPath))
         val bgImage = ImageIO.read(File(bgIconPath))
@@ -33,46 +37,49 @@ object LauncherGenerator {
             val size = (baseSize * scale).toInt()
             val radius = (cornerRadiusPx * scale).toFloat()
 
-            //create ic_launcher_background
-            val backgroundImage = imageLauncher(
-                fgImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB),
-                bgImage = bgImage,
-                size = size,
-                cornerRadius = 0f
-            )
-            createMipMapImage(backgroundImage, projectBasePath, "ic_launcher_background", dpi, localeCode)
+            localeList.forEach {
 
-            //create ic_launcher_foreground
-            val foregroundImage = imageLauncher(
-                fgImage = fgImage,
-                bgImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB),
-                size = size,
-                cornerRadius = 0f
-            )
-            createMipMapImage(foregroundImage, projectBasePath, "ic_launcher_foreground", dpi, localeCode)
+                //create ic_launcher_background
+                val backgroundImage = imageLauncher(
+                    fgImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB),
+                    bgImage = bgImage,
+                    size = size,
+                    cornerRadius = 0f
+                )
+                createMipMapImage(backgroundImage, projectBasePath, "${iconName}_background", dpi, it)
 
-            //create ic_launcher_round
-            val roundImage = imageLauncher(
-                fgImage = fgImage,
-                bgImage = bgImage,
-                size = size,
-                isCircle = true
-            )
-            createMipMapImage(roundImage, projectBasePath, "ic_launcher_round", dpi, localeCode)
+                //create ic_launcher_foreground
+                val foregroundImage = imageLauncher(
+                    fgImage = fgImage,
+                    bgImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB),
+                    size = size,
+                    cornerRadius = 0f
+                )
+                createMipMapImage(foregroundImage, projectBasePath, "${iconName}_foreground", dpi, it)
 
-            //ic_launcher
-            val outputImage = imageLauncher(fgImage, bgImage, size, radius)
+                //create ic_launcher_round
+                val roundImage = imageLauncher(
+                    fgImage = fgImage,
+                    bgImage = bgImage,
+                    size = size,
+                    isCircle = true
+                )
+                createMipMapImage(roundImage, projectBasePath, "${iconName}_round", dpi, it)
 
-            createMipMapImage(
-                image = outputImage,
-                projectBasePath = projectBasePath,
-                iconName = iconName,
-                dpi = dpi,
-                localeCode = localeCode
-            )
+                //ic_launcher
+                val outputImage = imageLauncher(fgImage, bgImage, size, radius)
+
+                createMipMapImage(
+                    image = outputImage,
+                    projectBasePath = projectBasePath,
+                    iconName = iconName,
+                    dpi = dpi,
+                    localeCode = it
+                )
+                generateMonochromeLayout(projectBasePath, it, iconName)
+
+            }
         }
-
-        generateMonochromeLayout(projectBasePath, localeCode)
     }
 
     private fun imageLauncher(
@@ -116,16 +123,16 @@ object LauncherGenerator {
         println("Saved: ${outputFile.absolutePath}")
     }
 
-    private fun generateMonochromeLayout(projectBasePath: String, localeCode: String){
+    private fun generateMonochromeLayout(projectBasePath: String, localeCode: String, iconName: String){
         val xmlDir = File("$projectBasePath/mipmap-${localeCode}-anydpi-v26").apply { mkdirs() }
         val xmlContent = """
         |<?xml version="1.0" encoding="utf-8"?>
         |<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-        |    <background android:drawable="@mipmap/ic_launcher_background" />
-        |    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+        |    <background android:drawable="@mipmap/${iconName}_background" />
+        |    <foreground android:drawable="@mipmap/${iconName}_foreground" />
         |</adaptive-icon>
     """.trimMargin()
-        File(xmlDir, "ic_launcher.xml").writeText(xmlContent)
-        File(xmlDir, "ic_launcher_round.xml").writeText(xmlContent)
+        File(xmlDir, "${iconName}.xml").writeText(xmlContent)
+        File(xmlDir, "${iconName}_round.xml").writeText(xmlContent)
     }
 }
