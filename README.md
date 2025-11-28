@@ -13,8 +13,9 @@ An Android Studio plugin that simplifies the creation of localized launcher icon
 - Perfect circle generation for round icons (`ic_launcher_round`)
 - Easy-to-use UI with:
     - Icon name input
-    - Locale code input (e.g., `ru`, `en-rUS`)
+    - Locale code input (e.g., `ru`, `en-rUS` or list of locales by template (`es-rCL, es-rAR, es-rPE, qu-rPE`))
     - Foreground and background image pickers with preview
+    - So easy to add appname for your chosen locales
 
 ## 🛠️ Installation
 
@@ -37,8 +38,10 @@ An Android Studio plugin that simplifies the creation of localized launcher icon
 2. **Right-click on the `res` folder** → `New` → `Localized Launcher Icon`.
 3. **Fill out the dialog form**:
     - Icon name (`ic_launcher`)
-    - Locale code (`en`, `ru-rKZ`)
+    - Locale code (`en`, `ru-rKZ` or list of locales by template (`es-rCL, es-rAR, es-rPE, qu-rPE`))
     - Select foreground and background images
+    - Use checkbox to add appname for chosen locales
+    - Input appname value
 4. **Click OK** — all icons will be generated automatically.
 
 
