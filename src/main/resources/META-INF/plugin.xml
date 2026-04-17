@@ -32,13 +32,13 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.java</depends>    <!-- Plugin compatibility for intellij & android studio -->
     <extensions defaultExtensionNs="com.intellij"/>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <actions>
         <action id="com.localizedLauncherIcon.LocalizedLauncherIconAction"
                 class="com.localizedLauncherIcon.LocalizedLauncherIconAction"
                 icon="icons/pluginIcon.svg"
-                text="Add Localized Launcher Icon">
+                text="Create Localization">
             <add-to-group group-id="NewGroup" anchor="first"/>
         </action>
     </actions>
