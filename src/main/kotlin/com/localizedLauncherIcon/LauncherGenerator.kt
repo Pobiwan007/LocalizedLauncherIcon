@@ -126,8 +126,8 @@ object LauncherGenerator {
         }
         g.clip = clipShape
 
-        g.drawImage(bgImage.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, null)
-        g.drawImage(fgImage.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, null)
+        g.drawImage(bgImage, 0, 0, size, size,null)
+        g.drawImage(fgImage, 0, 0, size, size,null)
         g.dispose()
 
         return outputImage

@@ -35,16 +35,17 @@ An Android Studio plugin that simplifies the creation of localized launcher icon
 ## 🧪 How to Use
 
 1. **If** you forked repository don\`t forget to update Android Studio local path in `build.gradle.kts`.
-2. **Right-click on the `res` folder** → `New` → `Localized Launcher Icon`.
-3. **Fill out the dialog form**:
-    - Icon name (`ic_launcher`)
-    - Locale code (`en`, `ru-rKZ` or list of locales by template (`es-rCL, es-rAR, es-rPE, qu-rPE`))
+2. **Right-click on the `res` folder** → `New` → `Create Localization`.
+3. **Fill value** for Locale code (`en`, `ru-rKZ` or list of locales by template (`es-rCL, es-rAR, es-rPE, qu-rPE`))
+4. **Enable options for locale app name or icons**
+5. **Fill out the dialog form for icons**:
+    - Icon name (`ic_launcher` by default)
     - Select foreground and background images
     - Use checkbox to add appname for chosen locales
-    - Input appname value
-4. **Click OK** — all icons will be generated automatically.
+6. **For localization app name choose checkbox and after put localized value**
+7. **Click OK** — all icons will be generated automatically.
 
 
-P.S. don`t forget refresh all files from your disk to update project files in Android Studio
+P.S. after completing plugin all files will be refreshed automatically
 
 
