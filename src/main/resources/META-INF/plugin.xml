@@ -19,20 +19,13 @@
         including adaptive icon XMLs for anydpi-v26.
         Features a UI for selecting foreground/background images and setting icon and locale names.
     </description>
-    <!--    <actions>-->
-    <!--        <action id="LocalizedLauncherIconAction"-->
-    <!--                class="com.localizedLauncherIcon.LocalizedLauncherIconAction"-->
-    <!--                text="Add Localized Launcher Icon"-->
-    <!--                icon="icons/pluginIcon.svg"-->
-    <!--                description="Adds localized launcher icons for different countries">-->
-    <!--            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewXml" />-->
-    <!--        </action>-->
-    <!--    </actions>-->
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
-    <depends>com.intellij.java</depends>    <!-- Plugin compatibility for intellij & android studio -->
-    <extensions defaultExtensionNs="com.intellij"/>
-    <version>1.1.0</version>
+    <!-- Uses only platform APIs, so it works in Android Studio and any IntelliJ-based IDE. -->
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="LocalizedLauncherIcon" displayType="BALLOON"/>
+    </extensions>
 
     <actions>
         <action id="com.localizedLauncherIcon.LocalizedLauncherIconAction"
