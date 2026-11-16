@@ -1,175 +1,217 @@
 package com.localizedLauncherIcon
 
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.ui.dsl.builder.panel
 import com.localizedLauncherIcon.validator.iconTextValidator
 import com.localizedLauncherIcon.validator.localeTextValidator
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.localizedLauncherIcon.validator.parseLocales
 import java.awt.Dimension
 import java.awt.Image
-import javax.swing.*
+import java.io.File
+import javax.swing.ImageIcon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.SwingConstants
 
 class LLIADialogWrapper(action: AnActionEvent) : DialogWrapper(action.project) {
-    private lateinit var fgIcon: String
-    private lateinit var bgIcon: String
-    private lateinit var iconNameTextField: Cell<JBTextField>
-    private lateinit var localeCodeTextField: Cell<JBTextField>
-    private lateinit var localizedNameTextField: Cell<JBTextField>
-    private lateinit var localizedNameRow: Row
-    private lateinit var localizedIconRow: Row
 
-    private val fgIconLabel = JLabel("No foreground icon selected")
-    private val bgIconLabel = JLabel("No background icon selected")
-    private lateinit var addLocalizedNamesCheckBox: Cell<JBCheckBox>
+    private val project: Project? = action.project
+    private val resFolder: VirtualFile? = action.getData(CommonDataKeys.VIRTUAL_FILE)
+
+    private var fgIconPath: String? = null
+    private var bgIconPath: String? = null
+
+    private lateinit var localeCodeTextField: Cell<JBTextField>
+    private lateinit var iconNameTextField: Cell<JBTextField>
+    private lateinit var localizedNameTextField: Cell<JBTextField>
     private lateinit var addLocalizedIconsCheckBox: Cell<JBCheckBox>
+    private lateinit var addLocalizedNamesCheckBox: Cell<JBCheckBox>
+    private lateinit var localizedIconRow: Row
+    private lateinit var localizedNameRow: Row
+
+    private val fgIconLabel = JLabel("No foreground icon selected", SwingConstants.CENTER)
+    private val bgIconLabel = JLabel("No background icon selected", SwingConstants.CENTER)
 
     init {
         title = "Create Localization"
-        super.init()
+        init()
     }
 
-    private val selectedFolder = PlatformDataKeys.VIRTUAL_FILE.getData(action.dataContext)
-
-    fun getIconName(): String = iconNameTextField.component.text
-    fun getLocaleCodes(): String = localeCodeTextField.component.text
-    fun getLocalizedName(): String = localizedNameTextField.component.text
-
-    override fun createCenterPanel(): JComponent {
-        fgIconLabel.horizontalAlignment = SwingConstants.CENTER
-        bgIconLabel.horizontalAlignment = SwingConstants.CENTER
-
-        println("PathToSelectedFolder: ".plus(selectedFolder?.path))
-        val panel = panel {
-            if (!selectedFolder?.name.equals("res")) row { label("Selected folder isn`t resource") }
-            row { label("Add locales") }
-            row {
-                localeCodeTextField = textField()
-                    .focused()
-                    .validationOnApply(localeTextValidator)
-            }
-            row {
-                addLocalizedIconsCheckBox = checkBox("Also add localized icons")
-                    .applyToComponent {
-                        addActionListener {
-                            val visible = isSelected
-                            localizedIconRow.visible(visible)
+    override fun createCenterPanel(): JComponent = panel {
+        if (resFolder?.name != "res") {
+            row { label("Selected folder isn't a resource folder") }
+        }
+        row("Locales:") {
+            localeCodeTextField = textField()
+                .focused()
+                .align(Align.FILL)
+                .comment("e.g. ru, kk-rKZ or es-rCL, es-rAR, qu-rPE")
+                .validationOnApply(localeTextValidator)
+        }
+        row {
+            addLocalizedIconsCheckBox = checkBox("Add localized launcher icons")
+                .applyToComponent { addActionListener { localizedIconRow.visible(isSelected) } }
+        }
+        localizedIconRow = row {
+            panel {
+                row("Icon name:") {
+                    iconNameTextField = textField()
+                        .text("ic_launcher")
+                        .validationOnApply { if (addLocalizedIconsCheckBox.component.isSelected) iconTextValidator(this, it) else null }
+                }
+                row("Foreground (PNG/WebP):") {
+                    cell(fgIconLabel).align(Align.FILL)
+                    button("Choose…") {
+                        chooseImageFile("Select Foreground Icon")?.let {
+                            fgIconPath = it.path
+                            showPreview(fgIconLabel, it.path)
                         }
                     }
-            }
-            localizedIconRow = row {
-                panel {
-                    row { label("Icon name") }
-                    row {
-                        iconNameTextField = textField()
-                            .text("ic_launcher")
-                            .validationOnApply(iconTextValidator)
-                    }
-
-                    row { label("Select foreground icon (PNG)") }
-
-                    row {
-                        cell(fgIconLabel).align(Align.FILL)
-                        button("Choose…") {
-                            val file = chooseImageFile("Select Foreground Icon")
-                            file?.let {
-                                fgIcon = it.path
-                                showSelectedImagePreview(fgIconLabel, it.path)
-                            }
-                        }
-                    }
-                    row { label("Select background icon (PNG/WebP)") }
-                    row {
-                        cell(bgIconLabel).align(Align.FILL)
-                        button("Choose…") {
-                            val file = chooseImageFile("Select Background Icon")
-                            file?.let {
-                                bgIcon = it.path
-                                showSelectedImagePreview(bgIconLabel, it.path)
-                            }
+                }
+                row("Background (PNG/WebP):") {
+                    cell(bgIconLabel).align(Align.FILL)
+                    button("Choose…") {
+                        chooseImageFile("Select Background Icon")?.let {
+                            bgIconPath = it.path
+                            showPreview(bgIconLabel, it.path)
                         }
                     }
                 }
             }
-            row {
-                addLocalizedNamesCheckBox = checkBox("Also add localized appname")
-                    .applyToComponent {
-                        addActionListener {
-                            val visible = isSelected
-                            localizedNameRow.visible(visible)
-                        }
-                    }
-            }
-
-            // Hidden text field (display names for desktop)
-            localizedNameRow = row {
-                label("AppName value")
-                localizedNameTextField = textField()
-            }
-            localizedIconRow.visible(false)
-            localizedNameRow.visible(false)
         }
-        return panel
+        row {
+            addLocalizedNamesCheckBox = checkBox("Add localized app name")
+                .applyToComponent { addActionListener { localizedNameRow.visible(isSelected) } }
+        }
+        localizedNameRow = row("App name:") {
+            localizedNameTextField = textField().align(Align.FILL)
+        }
+        localizedIconRow.visible(false)
+        localizedNameRow.visible(false)
     }
 
-    private fun showSelectedImagePreview(jLabel: JLabel, path: String) {
-        jLabel.preferredSize = Dimension(48, 48)
-        jLabel.icon = ImageIcon(ImageIcon(path).image.getScaledInstance(48, 48, Image.SCALE_SMOOTH))
-        jLabel.text = ""
-    }
-
-    private fun chooseImageFile(title: String): VirtualFile? {
-        val fileChooserDescriptor = FileChooserDescriptor(
-            true, false, false,
-            false, false, false
-        )
-            .withFileFilter { it.extension in listOf("png", "webp", "svg") }
-            .withTitle(title)
-        return FileChooser.chooseFile(fileChooserDescriptor, null, null)
+    override fun doValidate(): ValidationInfo? {
+        val addIcons = addLocalizedIconsCheckBox.component.isSelected
+        val addName = addLocalizedNamesCheckBox.component.isSelected
+        return when {
+            resFolder == null -> ValidationInfo("Select a res folder in the Project view")
+            !addIcons && !addName -> ValidationInfo("Choose what to generate: icons, app name or both")
+            addIcons && (fgIconPath == null || bgIconPath == null) ->
+                ValidationInfo("Select both foreground and background images")
+            addName && localizedNameTextField.component.text.isBlank() ->
+                ValidationInfo("App name cannot be empty", localizedNameTextField.component)
+            else -> null
+        }
     }
 
     override fun doOKAction() {
-
-        CoroutineScope(Dispatchers.Default).launch {
-            val projectPath = selectedFolder?.path ?: ""
-            if (addLocalizedIconsCheckBox.component.isSelected) {
-                if (fgIcon.isNotEmpty() && bgIcon.isNotEmpty()) {
-                    LauncherGenerator.generateLauncherIcons(
-                        projectBasePath = projectPath,
-                        localeCode = getLocaleCodes(),
-                        iconName = getIconName(),
-                        fgIconPath = fgIcon,
-                        bgIconPath = bgIcon
-                    )
-                }
-            }
-            if (addLocalizedNamesCheckBox.component.isSelected) {
-                AppNameGenerator.generateLocalizedAppName(
-                    appName = getLocalizedName(),
-                    locales = getLocaleCodes(),
-                    projectPath = projectPath
-                )
-            }
-            withContext(Dispatchers.Main) {
-                ApplicationManager.getApplication().invokeLater {
-                    LocalFileSystem.getInstance()
-                        .refreshAndFindFileByPath(projectPath)?.refresh(true, true)
-                }
-            }
-        }
+        val request = GenerationRequest(
+            resDir = File(requireNotNull(resFolder).path),
+            locales = localeCodeTextField.component.text,
+            iconName = iconNameTextField.component.text,
+            fgIconPath = fgIconPath.takeIf { addLocalizedIconsCheckBox.component.isSelected },
+            bgIconPath = bgIconPath.takeIf { addLocalizedIconsCheckBox.component.isSelected },
+            appName = localizedNameTextField.component.text.takeIf { addLocalizedNamesCheckBox.component.isSelected }
+        )
         super.doOKAction()
+        GenerationTask(project, resFolder, request).queue()
     }
 
+    private fun showPreview(label: JLabel, path: String) {
+        label.preferredSize = Dimension(48, 48)
+        label.icon = ImageIcon(ImageIcon(path).image.getScaledInstance(48, 48, Image.SCALE_SMOOTH))
+        label.text = ""
+    }
+
+    private fun chooseImageFile(title: String): VirtualFile? {
+        val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
+            .withFileFilter { it.extension?.lowercase() in SUPPORTED_EXTENSIONS }
+            .withTitle(title)
+        return FileChooser.chooseFile(descriptor, project, null)
+    }
+
+    private data class GenerationRequest(
+        val resDir: File,
+        val locales: String,
+        val iconName: String,
+        val fgIconPath: String?,
+        val bgIconPath: String?,
+        val appName: String?
+    )
+
+    /** Runs generation off the EDT with a progress indicator, then refreshes the VFS and reports the result. */
+    private class GenerationTask(
+        project: Project?,
+        private val resFolder: VirtualFile,
+        private val request: GenerationRequest
+    ) : Task.Backgroundable(project, "Generating localized resources", false) {
+
+        private var writtenFiles = 0
+
+        override fun run(indicator: ProgressIndicator) {
+            indicator.isIndeterminate = true
+            runBlockingCancellable {
+                if (request.fgIconPath != null && request.bgIconPath != null) {
+                    indicator.text = "Generating launcher icons…"
+                    writtenFiles += LauncherGenerator.generateLauncherIcons(
+                        projectBasePath = request.resDir.path,
+                        iconName = request.iconName,
+                        localeCode = request.locales,
+                        fgIconPath = request.fgIconPath,
+                        bgIconPath = request.bgIconPath
+                    ).size
+                }
+            }
+            if (request.appName != null) {
+                indicator.text = "Writing app names…"
+                writtenFiles += AppNameGenerator.generateLocalizedAppName(
+                    locales = request.locales,
+                    appName = request.appName,
+                    projectPath = request.resDir.path
+                ).size
+            }
+        }
+
+        override fun onSuccess() {
+            VfsUtil.markDirtyAndRefresh(true, true, true, resFolder)
+            notify(
+                "Generated $writtenFiles files for ${parseLocales(request.locales).joinToString()}",
+                NotificationType.INFORMATION
+            )
+        }
+
+        override fun onThrowable(error: Throwable) {
+            VfsUtil.markDirtyAndRefresh(true, true, true, resFolder)
+            notify("Generation failed: ${error.message}", NotificationType.ERROR)
+        }
+
+        private fun notify(content: String, type: NotificationType) {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("LocalizedLauncherIcon")
+                .createNotification(content, type)
+                .notify(project)
+        }
+    }
+
+    private companion object {
+        val SUPPORTED_EXTENSIONS = setOf("png", "webp", "jpg", "jpeg")
+    }
 }
