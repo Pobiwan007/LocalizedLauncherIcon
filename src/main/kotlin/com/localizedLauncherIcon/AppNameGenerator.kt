@@ -1,55 +1,57 @@
 package com.localizedLauncherIcon
 
+import com.localizedLauncherIcon.validator.parseLocales
 import java.io.File
 
+/** Writes `app_name` into `values-<locale>/strings.xml` for each locale. */
 object AppNameGenerator {
-    fun generateLocalizedAppName(locales: String, appName: String, projectPath: String){
-        val localeList = locales
-            .split(",")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
 
-        localeList.forEach { locale ->
-            val valuesDirName = if (locale.isNotEmpty()) {
-                "values-$locale"
-            } else {
-                "values"
-            }
+    private val APP_NAME_ENTRY = Regex("""<string\s+name="app_name"[^>]*>.*?</string>""", RegexOption.DOT_MATCHES_ALL)
 
-            val valuesDir = File("$projectPath/$valuesDirName")
-            if (!valuesDir.exists()) {
-                valuesDir.mkdirs()
-            }
+    /** @return the `strings.xml` files that were created or updated. */
+    fun generateLocalizedAppName(locales: String, appName: String, projectPath: String): List<File> =
+        generate(resDir = File(projectPath), locales = parseLocales(locales), appName = appName)
 
+    fun generate(resDir: File, locales: List<String>, appName: String): List<File> {
+        val entry = """<string name="app_name">${escapeAndroidString(appName)}</string>"""
+
+        return locales.map { locale ->
+            val valuesDir = File(resDir, if (locale.isEmpty()) "values" else "values-$locale").apply { mkdirs() }
             val stringsXml = File(valuesDir, "strings.xml")
 
-            if (!stringsXml.exists()) {
-                // Создаем новый файл
-                stringsXml.writeText(
-                    """
-                    <resources>
-                        <string name="app_name">$appName</string>
-                    </resources>
-                    """.trimIndent()
-                )
-                return@forEach
+            val content = when {
+                !stringsXml.exists() ->
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n    $entry\n</resources>\n"
+                APP_NAME_ENTRY.containsMatchIn(stringsXml.readText()) ->
+                    // Lambda replacement: '$' and '\' in the app name must not be treated as group references.
+                    APP_NAME_ENTRY.replace(stringsXml.readText()) { entry }
+                else ->
+                    stringsXml.readText().replace("</resources>", "    $entry\n</resources>")
             }
+            stringsXml.writeText(content)
+            stringsXml
+        }
+    }
 
-            val currentContent = stringsXml.readText()
-
-            if (currentContent.contains("name=\"app_name\"")) {
-                val updated = currentContent.replace(
-                    Regex("<string\\s+name=\"app_name\">.*?</string>"),
-                    "<string name=\"app_name\">$appName</string>"
-                )
-                stringsXml.writeText(updated)
-            } else {
-                val updated = currentContent.replace(
-                    "</resources>",
-                    "    <string name=\"app_name\">$appName</string>\n</resources>"
-                )
-                stringsXml.writeText(updated)
+    /**
+     * Escapes a value for an Android `<string>` resource: XML special characters,
+     * plus the characters aapt treats specially (`'`, `"`, `\`, leading `@` / `?`).
+     */
+    fun escapeAndroidString(value: String): String {
+        val escaped = buildString {
+            for (ch in value) {
+                when (ch) {
+                    '\\' -> append("\\\\")
+                    '\'' -> append("\\'")
+                    '"' -> append("\\\"")
+                    '&' -> append("&amp;")
+                    '<' -> append("&lt;")
+                    '>' -> append("&gt;")
+                    '\n' -> append("\\n")
+                    else -> append(ch)
+                }
             }
         }
+        return if (escaped.startsWith("@") || escaped.startsWith("?")) "\\$escaped" else escaped
     }
 }
