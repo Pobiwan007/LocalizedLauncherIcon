@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon.validator
+package com.localizedlaunchericon.validator
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

@@ -8,7 +8,7 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.3.0"
 }
 
-group = "com.localizedLauncherIcon"
+group = "com.localizedlaunchericon"
 version = providers.gradleProperty("pluginVersion").get()
 
 repositories {

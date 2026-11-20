@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon
 
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -21,9 +21,9 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
-import com.localizedLauncherIcon.validator.iconTextValidator
-import com.localizedLauncherIcon.validator.localeTextValidator
-import com.localizedLauncherIcon.validator.parseLocales
+import com.localizedlaunchericon.validator.iconTextValidator
+import com.localizedlaunchericon.validator.localeTextValidator
+import com.localizedlaunchericon.validator.parseLocales
 import java.awt.Dimension
 import java.awt.Image
 import java.io.File

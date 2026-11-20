@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon.validator
+package com.localizedlaunchericon.validator
 
 /** Android resource qualifier for a language with an optional region: `ru`, `fil`, `en-rUS`. */
 private val LOCALE_QUALIFIER = Regex("^[a-z]{2,3}(-r[A-Z]{2})?$")

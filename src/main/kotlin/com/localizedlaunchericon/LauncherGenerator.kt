@@ -1,6 +1,6 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon
 
-import com.localizedLauncherIcon.validator.parseLocales
+import com.localizedlaunchericon.validator.parseLocales
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

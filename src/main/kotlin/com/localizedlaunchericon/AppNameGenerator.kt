@@ -1,6 +1,6 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon
 
-import com.localizedLauncherIcon.validator.parseLocales
+import com.localizedlaunchericon.validator.parseLocales
 import java.io.File
 
 /** Writes `app_name` into `values-<locale>/strings.xml` for each locale. */

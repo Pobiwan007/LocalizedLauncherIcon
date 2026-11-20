@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction

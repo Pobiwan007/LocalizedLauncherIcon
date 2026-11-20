@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon
 
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
