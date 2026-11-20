@@ -3,6 +3,7 @@ package com.localizedlaunchericon.validation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AndroidResourceValidationTest {
@@ -26,7 +27,7 @@ class AndroidResourceValidationTest {
         assertNotNull(validateLocales("en-US"))
         val error = validateLocales("en, ru_RU")
         assertNotNull(error)
-        assert(error!!.contains("ru_RU")) { error }
+        assertTrue(error, error!!.contains("ru_RU"))
     }
 
     @Test
