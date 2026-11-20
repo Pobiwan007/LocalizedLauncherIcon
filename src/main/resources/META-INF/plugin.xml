@@ -29,7 +29,7 @@
 
     <actions>
         <action id="com.localizedLauncherIcon.LocalizedLauncherIconAction"
-                class="com.localizedlaunchericon.LocalizedLauncherIconAction"
+                class="com.localizedlaunchericon.action.CreateLocalizationAction"
                 icon="icons/pluginIcon.svg"
                 text="Create Localization">
             <add-to-group group-id="NewGroup" anchor="first"/>

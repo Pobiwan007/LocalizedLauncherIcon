@@ -1,4 +1,4 @@
-package com.localizedlaunchericon
+package com.localizedlaunchericon.ui
 
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -21,9 +21,11 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
-import com.localizedlaunchericon.validator.iconTextValidator
-import com.localizedlaunchericon.validator.localeTextValidator
-import com.localizedlaunchericon.validator.parseLocales
+import com.localizedlaunchericon.generation.AppNameGenerator
+import com.localizedlaunchericon.generation.LauncherIconGenerator
+import com.localizedlaunchericon.validation.iconTextValidator
+import com.localizedlaunchericon.validation.localeTextValidator
+import com.localizedlaunchericon.validation.parseLocales
 import java.awt.Dimension
 import java.awt.Image
 import java.io.File
@@ -32,7 +34,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-class LLIADialogWrapper(action: AnActionEvent) : DialogWrapper(action.project) {
+class CreateLocalizationDialog(action: AnActionEvent) : DialogWrapper(action.project) {
 
     private val project: Project? = action.project
     private val resFolder: VirtualFile? = action.getData(CommonDataKeys.VIRTUAL_FILE)
@@ -172,7 +174,7 @@ class LLIADialogWrapper(action: AnActionEvent) : DialogWrapper(action.project) {
             runBlockingCancellable {
                 if (request.fgIconPath != null && request.bgIconPath != null) {
                     indicator.text = "Generating launcher icons…"
-                    writtenFiles += LauncherGenerator.generateLauncherIcons(
+                    writtenFiles += LauncherIconGenerator.generateLauncherIcons(
                         projectBasePath = request.resDir.path,
                         iconName = request.iconName,
                         localeCode = request.locales,

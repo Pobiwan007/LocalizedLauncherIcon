@@ -1,4 +1,4 @@
-package com.localizedlaunchericon
+package com.localizedlaunchericon.generation
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

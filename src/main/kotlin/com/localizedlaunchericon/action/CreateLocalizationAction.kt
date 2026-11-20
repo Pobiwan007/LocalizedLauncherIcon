@@ -1,12 +1,13 @@
-package com.localizedlaunchericon
+package com.localizedlaunchericon.action
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.localizedlaunchericon.ui.CreateLocalizationDialog
 
 /** "New → Create Localization", available on a module's `res` folder. */
-class LocalizedLauncherIconAction : AnAction() {
+class CreateLocalizationAction : AnAction() {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -16,6 +17,6 @@ class LocalizedLauncherIconAction : AnAction() {
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        LLIADialogWrapper(e).show()
+        CreateLocalizationDialog(e).show()
     }
 }

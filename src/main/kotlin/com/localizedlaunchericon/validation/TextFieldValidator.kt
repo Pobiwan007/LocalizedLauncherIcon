@@ -1,4 +1,4 @@
-package com.localizedlaunchericon.validator
+package com.localizedlaunchericon.validation
 
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBTextField

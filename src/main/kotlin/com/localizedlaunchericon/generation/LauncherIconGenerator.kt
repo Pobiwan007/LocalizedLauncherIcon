@@ -1,6 +1,6 @@
-package com.localizedlaunchericon
+package com.localizedlaunchericon.generation
 
-import com.localizedlaunchericon.validator.parseLocales
+import com.localizedlaunchericon.validation.parseLocales
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -29,7 +29,7 @@ import javax.imageio.ImageIO
  *
  * WebP is used when the IDE provides an ImageIO WebP writer, PNG otherwise.
  */
-object LauncherGenerator {
+object LauncherIconGenerator {
 
     /** Legacy launcher icon size. */
     const val LEGACY_ICON_DP = 48
