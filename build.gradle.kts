@@ -6,6 +6,7 @@ plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.2.0"
     id("org.jetbrains.intellij.platform") version "2.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
 group = "com.localizedlaunchericon"
@@ -50,6 +51,10 @@ intellijPlatform {
         changeNotes = providers.fileContents(layout.projectDirectory.file("CHANGELOG.md")).asText
             .map { it.substringAfter("## ").substringBefore("\n## ").let { notes -> "<pre>## $notes</pre>" } }
     }
+}
+
+ktlint {
+    version.set("1.5.0")
 }
 
 kotlin {

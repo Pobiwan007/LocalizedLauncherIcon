@@ -30,10 +30,8 @@ import javax.swing.JLabel
 import javax.swing.SwingConstants
 
 /** Collects locales, icon images and the app name, then queues [GenerateLocalizationTask]. */
-class CreateLocalizationDialog(
-    private val project: Project,
-    private val resFolder: VirtualFile,
-) : DialogWrapper(project) {
+class CreateLocalizationDialog(private val project: Project, private val resFolder: VirtualFile) :
+    DialogWrapper(project) {
 
     private var foregroundImage: File? = null
     private var backgroundImage: File? = null

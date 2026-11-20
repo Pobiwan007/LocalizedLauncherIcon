@@ -22,7 +22,7 @@ class GenerateLocalizationTask(
     project: Project,
     private val resFolder: VirtualFile,
     private val request: LocalizationRequest,
-) : Task.Backgroundable(project, "Generating localized resources", /* canBeCancelled = */ true) {
+) : Task.Backgroundable(project, "Generating localized resources", CAN_BE_CANCELLED) {
 
     @Volatile
     private var writtenFiles = 0
@@ -62,6 +62,8 @@ class GenerateLocalizationTask(
     }
 
     companion object {
+        private const val CAN_BE_CANCELLED = true
+
         /** Must match the `notificationGroup` id registered in plugin.xml. */
         const val NOTIFICATION_GROUP_ID = "LocalizedLauncherIcon"
     }

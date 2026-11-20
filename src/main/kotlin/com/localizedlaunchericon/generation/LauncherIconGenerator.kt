@@ -43,7 +43,7 @@ object LauncherIconGenerator {
         "hdpi" to 1.5,
         "xhdpi" to 2.0,
         "xxhdpi" to 3.0,
-        "xxxhdpi" to 4.0
+        "xxxhdpi" to 4.0,
     )
 
     private val imageFormat: String by lazy {
@@ -79,7 +79,7 @@ object LauncherIconGenerator {
         scale: Double,
         cornerArcDp: Int,
         foreground: BufferedImage,
-        background: BufferedImage
+        background: BufferedImage,
     ): List<File> {
         val legacy = (LEGACY_ICON_DP * scale).toInt()
         val layer = (ADAPTIVE_LAYER_DP * scale).toInt()
@@ -87,20 +87,32 @@ object LauncherIconGenerator {
 
         return listOf(
             write(
-                compose(legacy, background, foreground, RoundRectangle2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat(), arc, arc)),
-                dir, iconName
+                compose(
+                    legacy,
+                    background,
+                    foreground,
+                    RoundRectangle2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat(), arc, arc),
+                ),
+                dir,
+                iconName,
             ),
             write(
                 compose(legacy, background, foreground, Ellipse2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat())),
-                dir, "${iconName}_round"
+                dir,
+                "${iconName}_round",
             ),
             write(compose(layer, null, foreground, null), dir, "${iconName}_foreground"),
-            write(compose(layer, background, null, null), dir, "${iconName}_background")
+            write(compose(layer, background, null, null), dir, "${iconName}_background"),
         )
     }
 
     /** Draws [background] and [foreground] scaled to [size] and cuts them with an anti-aliased [mask]. */
-    internal fun compose(size: Int, background: BufferedImage?, foreground: BufferedImage?, mask: Shape?): BufferedImage {
+    internal fun compose(
+        size: Int,
+        background: BufferedImage?,
+        foreground: BufferedImage?,
+        mask: Shape?,
+    ): BufferedImage {
         val output = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
         output.createGraphics().apply {
             setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
@@ -146,7 +158,8 @@ object LauncherIconGenerator {
             |    <background android:drawable="@mipmap/${iconName}_background" />
             |    <foreground android:drawable="@mipmap/${iconName}_foreground" />
             |</adaptive-icon>
-            |""".trimMargin()
+            |
+        """.trimMargin()
         return listOf(File(dir, "$iconName.xml"), File(dir, "${iconName}_round.xml"))
             .onEach { it.writeText(xml) }
     }

@@ -14,9 +14,8 @@ class AppNameGeneratorTest {
     @get:Rule
     val tmp = TemporaryFolder()
 
-    private fun appNameIn(file: File): String =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-            .getElementsByTagName("string").item(0).textContent
+    private fun appNameIn(file: File): String = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+        .getElementsByTagName("string").item(0).textContent
 
     @Test
     fun `creates strings xml for every locale`() {
@@ -39,7 +38,7 @@ class AppNameGeneratorTest {
                     <string name="app_name" translatable="true">Old</string>
                     <string name="hello">Привет</string>
                 </resources>
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
 
