@@ -38,6 +38,10 @@ dependencies {
 }
 
 intellijPlatform {
+    // The plugin has no Settings pages, so there is nothing to index. Disabling it here (rather than
+    // disabling the task) also skips prepareJarSearchableOptions, which fails on a clean build otherwise.
+    buildSearchableOptions = false
+
     pluginConfiguration {
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
@@ -61,10 +65,4 @@ kotlin {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
-}
-
-tasks {
-    buildSearchableOptions {
-        enabled = false
-    }
 }
