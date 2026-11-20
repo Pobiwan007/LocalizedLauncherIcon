@@ -1,6 +1,5 @@
 package com.localizedlaunchericon.generation
 
-import com.localizedlaunchericon.validation.parseLocales
 import java.io.File
 
 /** Writes `app_name` into `values-<locale>/strings.xml` for each locale. */
@@ -9,9 +8,6 @@ object AppNameGenerator {
     private val APP_NAME_ENTRY = Regex("""<string\s+name="app_name"[^>]*>.*?</string>""", RegexOption.DOT_MATCHES_ALL)
 
     /** @return the `strings.xml` files that were created or updated. */
-    fun generateLocalizedAppName(locales: String, appName: String, projectPath: String): List<File> =
-        generate(resDir = File(projectPath), locales = parseLocales(locales), appName = appName)
-
     fun generate(resDir: File, locales: List<String>, appName: String): List<File> {
         val entry = """<string name="app_name">${escapeAndroidString(appName)}</string>"""
 

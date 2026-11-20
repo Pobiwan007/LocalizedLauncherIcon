@@ -1,11 +1,9 @@
 package com.localizedlaunchericon.generation
 
-import com.localizedlaunchericon.validation.parseLocales
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.RenderingHints
@@ -37,6 +35,9 @@ object LauncherIconGenerator {
     /** Adaptive icon layer size: 72 dp visible area + 18 dp on each side for masks and parallax. */
     const val ADAPTIVE_LAYER_DP = 108
 
+    /** Corner arc of the legacy rounded-square icon. */
+    const val DEFAULT_CORNER_ARC_DP = 3
+
     val DENSITIES: Map<String, Double> = linkedMapOf(
         "mdpi" to 1.0,
         "hdpi" to 1.5,
@@ -49,35 +50,14 @@ object LauncherIconGenerator {
         if (ImageIO.getImageWritersByFormatName("webp").hasNext()) "webp" else "png"
     }
 
-    /** Entry point used by the dialog. @return all files that were written. */
-    suspend fun generateLauncherIcons(
-        projectBasePath: String,
-        iconName: String,
-        localeCode: String,
-        fgIconPath: String,
-        bgIconPath: String,
-        cornerArcDp: Int = 3
-    ): List<File> {
-        val (foreground, background) = withContext(Dispatchers.IO) {
-            readImage(fgIconPath) to readImage(bgIconPath)
-        }
-        return generate(
-            resDir = File(projectBasePath),
-            iconName = iconName,
-            locales = parseLocales(localeCode),
-            foreground = foreground,
-            background = background,
-            cornerArcDp = cornerArcDp
-        )
-    }
-
+    /** @return all files that were written. */
     suspend fun generate(
         resDir: File,
         iconName: String,
         locales: List<String>,
         foreground: BufferedImage,
         background: BufferedImage,
-        cornerArcDp: Int = 3
+        cornerArcDp: Int = DEFAULT_CORNER_ARC_DP,
     ): List<File> = coroutineScope {
         val bitmaps = locales.flatMap { locale ->
             DENSITIES.map { (density, scale) ->
@@ -171,6 +151,7 @@ object LauncherIconGenerator {
             .onEach { it.writeText(xml) }
     }
 
-    private fun readImage(path: String): BufferedImage =
-        requireNotNull(ImageIO.read(File(path))) { "Unsupported image format: $path (use PNG, JPEG or WebP)" }
+    /** Decodes [file] with ImageIO, failing with a readable message for unsupported formats. */
+    fun readImage(file: File): BufferedImage =
+        requireNotNull(ImageIO.read(file)) { "Unsupported image format: ${file.name} (use PNG, JPEG or WebP)" }
 }
