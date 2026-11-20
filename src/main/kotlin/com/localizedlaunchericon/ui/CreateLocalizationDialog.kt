@@ -15,9 +15,11 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
 import com.localizedlaunchericon.generation.LocalizationRequest
 import com.localizedlaunchericon.task.GenerateLocalizationTask
-import com.localizedlaunchericon.validation.iconTextValidator
-import com.localizedlaunchericon.validation.localeTextValidator
+import com.localizedlaunchericon.validation.SelectionError
 import com.localizedlaunchericon.validation.parseLocales
+import com.localizedlaunchericon.validation.validateIconName
+import com.localizedlaunchericon.validation.validateLocales
+import com.localizedlaunchericon.validation.validateSelection
 import java.awt.Dimension
 import java.awt.Image
 import java.io.File
@@ -57,7 +59,7 @@ class CreateLocalizationDialog(
                 .focused()
                 .align(Align.FILL)
                 .comment("e.g. ru, kk-rKZ or es-rCL, es-rAR, qu-rPE")
-                .validationOnApply(localeTextValidator)
+                .validationOnApply { field -> validateLocales(field.text)?.let { message -> error(message) } }
         }
         row {
             addIconsCheckBox = checkBox("Add localized launcher icons")
@@ -68,7 +70,9 @@ class CreateLocalizationDialog(
                 row("Icon name:") {
                     iconNameField = textField()
                         .text(DEFAULT_ICON_NAME)
-                        .validationOnApply { field -> if (addIcons) iconTextValidator(this, field) else null }
+                        .validationOnApply { field ->
+                            if (addIcons) validateIconName(field.text)?.let { message -> error(message) } else null
+                        }
                 }
                 row("Foreground (PNG/WebP):") {
                     cell(foregroundPreview).align(Align.FILL)
@@ -104,13 +108,16 @@ class CreateLocalizationDialog(
     private val addIcons: Boolean get() = addIconsCheckBox.component.isSelected
     private val addAppName: Boolean get() = addAppNameCheckBox.component.isSelected
 
-    override fun doValidate(): ValidationInfo? = when {
-        !addIcons && !addAppName -> ValidationInfo("Choose what to generate: icons, app name or both")
-        addIcons && (foregroundImage == null || backgroundImage == null) ->
-            ValidationInfo("Select both foreground and background images")
-        addAppName && appNameField.component.text.isBlank() ->
-            ValidationInfo("App name cannot be empty", appNameField.component)
-        else -> null
+    override fun doValidate(): ValidationInfo? {
+        val error = validateSelection(
+            addIcons = addIcons,
+            hasForeground = foregroundImage != null,
+            hasBackground = backgroundImage != null,
+            addAppName = addAppName,
+            appName = appNameField.component.text,
+        ) ?: return null
+        val component = if (error == SelectionError.APP_NAME_EMPTY) appNameField.component else null
+        return ValidationInfo(error.message, component)
     }
 
     override fun doOKAction() {

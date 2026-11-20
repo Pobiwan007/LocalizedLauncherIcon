@@ -5,7 +5,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class LocalesTest {
+class AndroidResourceValidationTest {
 
     @Test
     fun `parses comma separated list, trimming blanks and duplicates`() {
