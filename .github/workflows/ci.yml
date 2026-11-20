@@ -6,6 +6,14 @@ on:
     tags: [ 'v*' ]
   pull_request:
 
+# Cancel superseded runs of the same branch or pull request.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,8 +27,15 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Test, build and verify plugin structure
-        run: ./gradlew test buildPlugin verifyPluginStructure --stacktrace
+      - name: Lint, test, build and verify plugin structure
+        run: ./gradlew ktlintCheck test buildPlugin verifyPluginStructure --stacktrace
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: build/reports/tests/
 
       - name: Upload plugin ZIP
         uses: actions/upload-artifact@v4
@@ -28,11 +43,18 @@ jobs:
           name: LocalizedLauncherIcon-plugin
           path: build/distributions/*.zip
 
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # only the release job may create releases
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: LocalizedLauncherIcon-plugin
+
       - name: Attach ZIP to GitHub release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/distributions/*.zip
-
-permissions:
-  contents: write
+          files: '*.zip'
