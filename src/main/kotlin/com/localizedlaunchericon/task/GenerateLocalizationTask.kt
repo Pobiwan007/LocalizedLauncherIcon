@@ -15,12 +15,14 @@ import com.localizedlaunchericon.generation.LocalizationRequest
 /**
  * Runs [LocalizationGenerator] off the EDT with a progress indicator, then refreshes the VFS
  * so the new resources show up in the Project view, and reports the result as a notification.
+ *
+ * Cancelling the progress indicator cancels the coroutine started by [runBlockingCancellable].
  */
 class GenerateLocalizationTask(
     project: Project,
     private val resFolder: VirtualFile,
     private val request: LocalizationRequest,
-) : Task.Backgroundable(project, "Generating localized resources", false) {
+) : Task.Backgroundable(project, "Generating localized resources", /* canBeCancelled = */ true) {
 
     @Volatile
     private var writtenFiles = 0
@@ -35,6 +37,11 @@ class GenerateLocalizationTask(
     override fun onSuccess() {
         refreshResFolder()
         notify("Generated $writtenFiles files for ${request.locales.joinToString()}", NotificationType.INFORMATION)
+    }
+
+    override fun onCancel() {
+        refreshResFolder() // files written before cancellation should still appear in the Project view
+        notify("Generation cancelled", NotificationType.WARNING)
     }
 
     override fun onThrowable(error: Throwable) {
