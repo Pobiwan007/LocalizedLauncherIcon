@@ -20,6 +20,7 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.text
 import com.localizedLauncherIcon.validator.iconTextValidator
 import com.localizedLauncherIcon.validator.localeTextValidator
 import com.localizedLauncherIcon.validator.parseLocales
