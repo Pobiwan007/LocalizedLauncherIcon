@@ -1,11 +1,9 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon.generation
 
-import com.localizedLauncherIcon.validator.parseLocales
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.RenderingHints
@@ -29,7 +27,7 @@ import javax.imageio.ImageIO
  *
  * WebP is used when the IDE provides an ImageIO WebP writer, PNG otherwise.
  */
-object LauncherGenerator {
+object LauncherIconGenerator {
 
     /** Legacy launcher icon size. */
     const val LEGACY_ICON_DP = 48
@@ -37,47 +35,29 @@ object LauncherGenerator {
     /** Adaptive icon layer size: 72 dp visible area + 18 dp on each side for masks and parallax. */
     const val ADAPTIVE_LAYER_DP = 108
 
+    /** Corner arc of the legacy rounded-square icon. */
+    const val DEFAULT_CORNER_ARC_DP = 3
+
     val DENSITIES: Map<String, Double> = linkedMapOf(
         "mdpi" to 1.0,
         "hdpi" to 1.5,
         "xhdpi" to 2.0,
         "xxhdpi" to 3.0,
-        "xxxhdpi" to 4.0
+        "xxxhdpi" to 4.0,
     )
 
     private val imageFormat: String by lazy {
         if (ImageIO.getImageWritersByFormatName("webp").hasNext()) "webp" else "png"
     }
 
-    /** Entry point used by the dialog. @return all files that were written. */
-    suspend fun generateLauncherIcons(
-        projectBasePath: String,
-        iconName: String,
-        localeCode: String,
-        fgIconPath: String,
-        bgIconPath: String,
-        cornerArcDp: Int = 3
-    ): List<File> {
-        val (foreground, background) = withContext(Dispatchers.IO) {
-            readImage(fgIconPath) to readImage(bgIconPath)
-        }
-        return generate(
-            resDir = File(projectBasePath),
-            iconName = iconName,
-            locales = parseLocales(localeCode),
-            foreground = foreground,
-            background = background,
-            cornerArcDp = cornerArcDp
-        )
-    }
-
+    /** @return all files that were written. */
     suspend fun generate(
         resDir: File,
         iconName: String,
         locales: List<String>,
         foreground: BufferedImage,
         background: BufferedImage,
-        cornerArcDp: Int = 3
+        cornerArcDp: Int = DEFAULT_CORNER_ARC_DP,
     ): List<File> = coroutineScope {
         val bitmaps = locales.flatMap { locale ->
             DENSITIES.map { (density, scale) ->
@@ -99,7 +79,7 @@ object LauncherGenerator {
         scale: Double,
         cornerArcDp: Int,
         foreground: BufferedImage,
-        background: BufferedImage
+        background: BufferedImage,
     ): List<File> {
         val legacy = (LEGACY_ICON_DP * scale).toInt()
         val layer = (ADAPTIVE_LAYER_DP * scale).toInt()
@@ -107,20 +87,32 @@ object LauncherGenerator {
 
         return listOf(
             write(
-                compose(legacy, background, foreground, RoundRectangle2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat(), arc, arc)),
-                dir, iconName
+                compose(
+                    legacy,
+                    background,
+                    foreground,
+                    RoundRectangle2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat(), arc, arc),
+                ),
+                dir,
+                iconName,
             ),
             write(
                 compose(legacy, background, foreground, Ellipse2D.Float(0f, 0f, legacy.toFloat(), legacy.toFloat())),
-                dir, "${iconName}_round"
+                dir,
+                "${iconName}_round",
             ),
             write(compose(layer, null, foreground, null), dir, "${iconName}_foreground"),
-            write(compose(layer, background, null, null), dir, "${iconName}_background")
+            write(compose(layer, background, null, null), dir, "${iconName}_background"),
         )
     }
 
     /** Draws [background] and [foreground] scaled to [size] and cuts them with an anti-aliased [mask]. */
-    internal fun compose(size: Int, background: BufferedImage?, foreground: BufferedImage?, mask: Shape?): BufferedImage {
+    internal fun compose(
+        size: Int,
+        background: BufferedImage?,
+        foreground: BufferedImage?,
+        mask: Shape?,
+    ): BufferedImage {
         val output = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
         output.createGraphics().apply {
             setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
@@ -166,11 +158,13 @@ object LauncherGenerator {
             |    <background android:drawable="@mipmap/${iconName}_background" />
             |    <foreground android:drawable="@mipmap/${iconName}_foreground" />
             |</adaptive-icon>
-            |""".trimMargin()
+            |
+        """.trimMargin()
         return listOf(File(dir, "$iconName.xml"), File(dir, "${iconName}_round.xml"))
             .onEach { it.writeText(xml) }
     }
 
-    private fun readImage(path: String): BufferedImage =
-        requireNotNull(ImageIO.read(File(path))) { "Unsupported image format: $path (use PNG, JPEG or WebP)" }
+    /** Decodes [file] with ImageIO, failing with a readable message for unsupported formats. */
+    fun readImage(file: File): BufferedImage =
+        requireNotNull(ImageIO.read(file)) { "Unsupported image format: ${file.name} (use PNG, JPEG or WebP)" }
 }

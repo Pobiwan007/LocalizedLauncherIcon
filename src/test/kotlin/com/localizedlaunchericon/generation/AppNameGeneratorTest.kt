@@ -1,6 +1,7 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon.generation
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -13,9 +14,8 @@ class AppNameGeneratorTest {
     @get:Rule
     val tmp = TemporaryFolder()
 
-    private fun appNameIn(file: File): String =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-            .getElementsByTagName("string").item(0).textContent
+    private fun appNameIn(file: File): String = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+        .getElementsByTagName("string").item(0).textContent
 
     @Test
     fun `creates strings xml for every locale`() {
@@ -38,7 +38,7 @@ class AppNameGeneratorTest {
                     <string name="app_name" translatable="true">Old</string>
                     <string name="hello">Привет</string>
                 </resources>
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
 
@@ -80,5 +80,25 @@ class AppNameGeneratorTest {
         assertEquals("\\@home", AppNameGenerator.escapeAndroidString("@home"))
         assertEquals("\\?x", AppNameGenerator.escapeAndroidString("?x"))
         assertEquals("1 &lt; 2 &amp;&amp; 3 &gt; 2", AppNameGenerator.escapeAndroidString("1 < 2 && 3 > 2"))
+    }
+
+    @Test
+    fun `fails instead of silently skipping a strings xml without a closing tag`() {
+        val res = tmp.newFolder("res")
+        File(res, "values-ru/strings.xml").apply {
+            parentFile.mkdirs()
+            writeText("<resources>")
+        }
+
+        val error = assertThrows(IllegalStateException::class.java) {
+            AppNameGenerator.generate(res, listOf("ru"), "Cook")
+        }
+        assertTrue(error.message, error.message!!.contains("</resources>"))
+    }
+
+    @Test
+    fun `escapes new lines and keeps non-leading at signs`() {
+        assertEquals("line1\\nline2", AppNameGenerator.escapeAndroidString("line1\nline2"))
+        assertEquals("me@home", AppNameGenerator.escapeAndroidString("me@home"))
     }
 }

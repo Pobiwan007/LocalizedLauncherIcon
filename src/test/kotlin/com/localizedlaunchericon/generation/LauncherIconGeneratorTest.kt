@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon
+package com.localizedlaunchericon.generation
 
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-class LauncherGeneratorTest {
+class LauncherIconGeneratorTest {
 
     @get:Rule
     val tmp = TemporaryFolder()
@@ -31,24 +31,32 @@ class LauncherGeneratorTest {
     fun `generates the full icon set for every locale and density`() = runBlocking {
         val res = tmp.newFolder("res")
 
-        val files = LauncherGenerator.generate(
+        val files = LauncherIconGenerator.generate(
             resDir = res,
             iconName = "ic_launcher",
             locales = listOf("ru", "en-rUS"),
             foreground = solid(Color.WHITE),
-            background = solid(Color.BLUE)
+            background = solid(Color.BLUE),
         )
 
         // 4 bitmaps x 5 densities x 2 locales + 2 xml x 2 locales
         assertEquals(44, files.size)
         assertTrue(files.all { it.exists() })
-        assertTrue(File(res, "mipmap-ru-anydpi-v26/ic_launcher.xml").readText().contains("@mipmap/ic_launcher_foreground"))
+        assertTrue(
+            File(res, "mipmap-ru-anydpi-v26/ic_launcher.xml").readText().contains("@mipmap/ic_launcher_foreground"),
+        )
     }
 
     @Test
     fun `legacy icons are 48 dp and adaptive layers are 108 dp`() = runBlocking {
         val res = tmp.newFolder("res")
-        val files = LauncherGenerator.generate(res, "ic_launcher", listOf("ru"), solid(Color.WHITE), solid(Color.BLUE))
+        val files = LauncherIconGenerator.generate(
+            res,
+            "ic_launcher",
+            listOf("ru"),
+            solid(Color.WHITE),
+            solid(Color.BLUE),
+        )
 
         fun size(density: String, name: String) =
             files.single { it.parentFile.name == "mipmap-ru-$density" && it.nameWithoutExtension == name }.imageSize()
@@ -62,8 +70,11 @@ class LauncherGeneratorTest {
     @Test
     fun `round icon is transparent outside the circle and opaque inside`() {
         val size = 96
-        val image = LauncherGenerator.compose(
-            size, solid(Color.RED), null, Ellipse2D.Float(0f, 0f, size.toFloat(), size.toFloat())
+        val image = LauncherIconGenerator.compose(
+            size,
+            solid(Color.RED),
+            null,
+            Ellipse2D.Float(0f, 0f, size.toFloat(), size.toFloat()),
         )
 
         val cornerAlpha = image.getRGB(0, 0) ushr 24
@@ -76,7 +87,7 @@ class LauncherGeneratorTest {
     fun `regeneration replaces files instead of duplicating resources`() = runBlocking {
         val res = tmp.newFolder("res")
         repeat(2) {
-            LauncherGenerator.generate(res, "ic_launcher", listOf("ru"), solid(Color.WHITE), solid(Color.BLUE))
+            LauncherIconGenerator.generate(res, "ic_launcher", listOf("ru"), solid(Color.WHITE), solid(Color.BLUE))
         }
 
         val names = File(res, "mipmap-ru-mdpi").listFiles()!!.map { it.nameWithoutExtension }

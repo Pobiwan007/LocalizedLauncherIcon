@@ -1,4 +1,4 @@
-package com.localizedLauncherIcon.validator
+package com.localizedlaunchericon.validation
 
 /** Android resource qualifier for a language with an optional region: `ru`, `fil`, `en-rUS`. */
 private val LOCALE_QUALIFIER = Regex("^[a-z]{2,3}(-r[A-Z]{2})?$")
@@ -7,8 +7,7 @@ private val LOCALE_QUALIFIER = Regex("^[a-z]{2,3}(-r[A-Z]{2})?$")
 private val RESOURCE_NAME = Regex("^[a-z][a-z0-9_]*$")
 
 /** Splits a comma-separated list of locale qualifiers, trimming blanks and duplicates. */
-fun parseLocales(input: String): List<String> =
-    input.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+fun parseLocales(input: String): List<String> = input.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
 /** @return an error message, or `null` when [input] is a valid list of locale qualifiers. */
 fun validateLocales(input: String): String? {
