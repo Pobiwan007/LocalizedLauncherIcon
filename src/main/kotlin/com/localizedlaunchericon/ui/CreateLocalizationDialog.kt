@@ -1,7 +1,7 @@
 package com.localizedlaunchericon.ui
 
 import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -13,6 +13,7 @@ import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
+import com.localizedlaunchericon.generation.LauncherIconGenerator
 import com.localizedlaunchericon.generation.LocalizationRequest
 import com.localizedlaunchericon.task.GenerateLocalizationTask
 import com.localizedlaunchericon.validation.SelectionError
@@ -77,18 +78,16 @@ class CreateLocalizationDialog(
                 row("Foreground (PNG/WebP):") {
                     cell(foregroundPreview).align(Align.FILL)
                     button("Choose…") {
-                        chooseImage("Select Foreground Image")?.let {
-                            foregroundImage = it
-                            showPreview(foregroundPreview, it)
+                        chooseImage("Select Foreground Image")?.let { file ->
+                            foregroundImage = file.takeIf { showPreview(foregroundPreview, file) }
                         }
                     }
                 }
                 row("Background (PNG/WebP):") {
                     cell(backgroundPreview).align(Align.FILL)
                     button("Choose…") {
-                        chooseImage("Select Background Image")?.let {
-                            backgroundImage = it
-                            showPreview(backgroundPreview, it)
+                        chooseImage("Select Background Image")?.let { file ->
+                            backgroundImage = file.takeIf { showPreview(backgroundPreview, file) }
                         }
                     }
                 }
@@ -141,17 +140,27 @@ class CreateLocalizationDialog(
         appName = appNameField.component.text.takeIf { addAppName },
     )
 
-    private fun showPreview(label: JLabel, image: File) {
-        label.preferredSize = Dimension(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX)
-        label.icon = ImageIcon(ImageIcon(image.path).image.getScaledInstance(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, Image.SCALE_SMOOTH))
-        label.text = ""
-    }
-
+    /** @return the chosen image file, or `null` if the user cancelled. */
     private fun chooseImage(title: String): File? {
-        val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
+        val descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
             .withFileFilter { it.extension?.lowercase() in SUPPORTED_EXTENSIONS }
             .withTitle(title)
         return FileChooser.chooseFile(descriptor, project, null)?.let { File(it.path) }
+    }
+
+    /** Shows a thumbnail of [file] in [preview]. @return `false` if the image cannot be decoded. */
+    private fun showPreview(preview: JLabel, file: File): Boolean {
+        // Decode with ImageIO, like the generator does: ImageIcon cannot read WebP.
+        val image = runCatching { LauncherIconGenerator.readImage(file) }.getOrNull()
+        if (image == null) {
+            preview.icon = null
+            preview.text = "Cannot read ${file.name}"
+            return false
+        }
+        preview.preferredSize = Dimension(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX)
+        preview.icon = ImageIcon(image.getScaledInstance(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, Image.SCALE_SMOOTH))
+        preview.text = ""
+        return true
     }
 
     private companion object {
